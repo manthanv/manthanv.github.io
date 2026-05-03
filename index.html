@@ -1,1 +1,861 @@
 
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classic Tailor</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f5f5f0; color: #1a1a1a; min-height: 100vh; }
+
+  .header { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .header h1 { font-size: 20px; font-weight: 700; color: #1a1a1a; white-space: nowrap; }
+  .header h1 span { color: #b8860b; }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-link { padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; color: #666; background: none; border: none; transition: all 0.15s; }
+  .nav-link:hover { background: #f5f5f0; color: #1a1a1a; }
+  .nav-link.active { background: #1a1a1a; color: #fff; }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .lang-select { padding: 6px 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; background: #fff; cursor: pointer; outline: none; }
+
+  .btn { padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.15s; }
+  .btn-primary { background: #1a1a1a; color: #fff; }
+  .btn-primary:hover { background: #333; }
+  .btn-secondary { background: #fff; color: #1a1a1a; border: 1px solid #ccc; }
+  .btn-secondary:hover { background: #f5f5f0; }
+  .btn-success { background: #2e7d32; color: #fff; }
+  .btn-success:hover { background: #1b5e20; }
+  .btn-warning { background: #f57c00; color: #fff; }
+  .btn-warning:hover { background: #e65100; }
+  .btn-info { background: #0277bd; color: #fff; }
+  .btn-info:hover { background: #01579b; }
+  .btn-print { background: #4a148c; color: #fff; }
+  .btn-print:hover { background: #6a1b9a; }
+  .btn-sm { padding: 6px 12px; font-size: 13px; }
+
+  .page { display: none; padding: 2rem; max-width: 1100px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1.5rem; }
+  .stat-card { background: #fff; border-radius: 10px; border: 1px solid #e0e0e0; padding: 1rem 1.25rem; }
+  .stat-label { font-size: 12px; color: #999; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
+  .stat-value { font-size: 28px; font-weight: 700; }
+  .stat-value.green { color: #2e7d32; }
+  .stat-value.amber { color: #f57c00; }
+  .stat-value.blue { color: #0277bd; }
+
+  .search-bar { position: relative; margin-bottom: 1rem; }
+  .search-bar input { width: 100%; padding: 11px 16px 11px 40px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; background: #fff; outline: none; }
+  .search-bar input:focus { border-color: #1a1a1a; }
+  .search-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #aaa; font-size: 16px; pointer-events: none; }
+  [dir="rtl"] .search-bar input { padding: 11px 40px 11px 16px; }
+  [dir="rtl"] .search-icon { left: auto; right: 13px; }
+
+  .table-wrap { background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #f9f9f7; text-align: left; padding: 12px 16px; font-size: 13px; color: #666; font-weight: 600; border-bottom: 1px solid #e0e0e0; }
+  td { padding: 13px 16px; font-size: 14px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+  [dir="rtl"] th, [dir="rtl"] td { text-align: right; }
+  tr:last-child td { border-bottom: none; }
+  tr.clickable:hover td { background: #fafaf8; cursor: pointer; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-amber { background: #fff8e1; color: #f57c00; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-blue { background: #e3f2fd; color: #0277bd; }
+  .empty-state { text-align: center; padding: 3rem; color: #999; }
+  .empty-state p { font-size: 15px; margin-top: 8px; }
+
+  .form-card { background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; padding: 2rem; margin-top: 1.5rem; }
+  .form-title { font-size: 18px; font-weight: 600; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #f0f0f0; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 13px; color: #555; font-weight: 500; }
+  input, select, textarea { padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; background: #fff; color: #1a1a1a; outline: none; transition: border 0.15s; }
+  input:focus, select:focus, textarea:focus { border-color: #1a1a1a; }
+  textarea { resize: vertical; min-height: 80px; }
+  .form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 1.5rem; }
+
+  .steps { display: flex; align-items: center; margin-bottom: 2rem; }
+  .step { display: flex; align-items: center; gap: 8px; }
+  .step-num { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: #e0e0e0; color: #888; }
+  .step.active .step-num { background: #1a1a1a; color: #fff; }
+  .step.done .step-num { background: #2e7d32; color: #fff; }
+  .step-label { font-size: 13px; color: #888; font-weight: 500; }
+  .step.active .step-label { color: #1a1a1a; }
+  .step-line { flex: 1; height: 1px; background: #e0e0e0; margin: 0 12px; }
+
+  .tabs { display: flex; border-bottom: 2px solid #e0e0e0; margin-bottom: 1.5rem; }
+  .tab { padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 500; color: #888; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+  .tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; }
+  .meas-section { display: none; }
+  .meas-section.active { display: block; }
+  .meas-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: 16px; padding: 2rem; width: 720px; max-width: 95vw; max-height: 88vh; overflow-y: auto; }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #f0f0f0; }
+  .modal-title { font-size: 20px; font-weight: 700; }
+  .close-btn { background: none; border: none; font-size: 22px; cursor: pointer; color: #888; }
+  .close-btn:hover { color: #1a1a1a; }
+  .detail-row { display: flex; gap: 8px; margin-bottom: 8px; font-size: 14px; }
+  .detail-label { color: #888; min-width: 130px; font-weight: 500; }
+  .delivery-card { background: #f9f9f7; border-radius: 10px; border: 1px solid #e0e0e0; padding: 1.25rem; margin-top: 1rem; }
+  .delivery-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .delivery-title { font-size: 15px; font-weight: 600; }
+  .delivery-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .photo-preview { width: 100%; max-height: 160px; object-fit: cover; border-radius: 8px; margin-top: 8px; }
+  .section-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #aaa; font-weight: 600; margin: 1rem 0 0.5rem; }
+  .uid-badge { font-size: 12px; background: #f0f0f0; color: #555; padding: 3px 8px; border-radius: 6px; font-family: monospace; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1><span>&#9986;</span> Classic Tailor</h1>
+    <div class="nav-links">
+      <button class="nav-link active" id="nav-customers" onclick="showPage('page-list')" data-i="nav_customers">Customers</button>
+      <button class="nav-link" id="nav-deliveries" onclick="showPage('page-deliveries')" data-i="nav_deliveries">All Deliveries</button>
+    </div>
+  </div>
+  <div class="header-right">
+    <select class="lang-select" onchange="changeLang(this.value)">
+      <option value="en">English</option>
+      <option value="ar">العربية</option>
+      <option value="hi">हिंदी</option>
+      <option value="ur">اردو</option>
+    </select>
+    <div id="headerActions"></div>
+  </div>
+</div>
+
+<!-- CUSTOMERS PAGE -->
+<div class="page active" id="page-list">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+    <h2 style="font-size:20px;font-weight:600;" data-i="customers_title">Customers</h2>
+  </div>
+  <div class="search-bar">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" id="customerSearch" oninput="renderTable()" data-i-ph="search_customers_ph">
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th data-i="col_name">Name</th>
+        <th data-i="col_mobile">Mobile</th>
+        <th data-i="col_address">Address</th>
+        <th data-i="col_created">Created Date</th>
+      </tr></thead>
+      <tbody id="customerTableBody"></tbody>
+    </table>
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <div style="font-size:40px;">&#9986;</div>
+      <p data-i="no_customers">No customers yet. Add your first customer!</p>
+    </div>
+  </div>
+</div>
+
+<!-- ALL DELIVERIES PAGE -->
+<div class="page" id="page-deliveries">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+    <h2 style="font-size:20px;font-weight:600;" data-i="deliveries_title">All Deliveries</h2>
+  </div>
+  <div class="stats-row" id="deliveryStats"></div>
+  <div class="search-bar">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" id="deliverySearch" oninput="renderDeliveriesPage()" data-i-ph="search_deliveries_ph">
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th data-i="col_customer">Customer</th>
+        <th data-i="col_mobile">Mobile</th>
+        <th data-i="col_amount">Amount</th>
+        <th data-i="col_est_date">Est. Delivery Date</th>
+        <th data-i="col_ready">Ready</th>
+        <th data-i="col_delivered">Delivered</th>
+        <th data-i="col_actions">Actions</th>
+      </tr></thead>
+      <tbody id="deliveriesTableBody"></tbody>
+    </table>
+    <div class="empty-state" id="delivEmptyState" style="display:none;">
+      <div style="font-size:40px;">&#128230;</div>
+      <p data-i="no_deliveries">No deliveries found.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CUSTOMER PAGE -->
+<div class="page" id="page-add-customer">
+  <div class="steps">
+    <div class="step active"><div class="step-num">1</div><div class="step-label" data-i="step_info">Customer Info</div></div>
+    <div class="step-line"></div>
+    <div class="step"><div class="step-num">2</div><div class="step-label" data-i="step_meas">Measurements</div></div>
+  </div>
+  <div class="form-card">
+    <div class="form-title" data-i="customer_info_title">Customer Information</div>
+    <div class="form-grid">
+      <div class="form-group"><label data-i="lbl_first_name">First Name *</label><input type="text" id="firstName" data-i-ph="ph_first_name"></div>
+      <div class="form-group"><label data-i="lbl_last_name">Last Name *</label><input type="text" id="lastName" data-i-ph="ph_last_name"></div>
+      <div class="form-group"><label data-i="lbl_mobile">Mobile Number *</label><input type="tel" id="mobile" placeholder="+91 XXXXX XXXXX"></div>
+      <div class="form-group"><label data-i="lbl_age">Age</label><input type="number" id="age" data-i-ph="ph_age" min="1" max="120"></div>
+      <div class="form-group"><label data-i="lbl_gender">Gender</label>
+        <select id="gender">
+          <option value="" data-i="gender_select">Select</option>
+          <option value="Male" data-i="gender_male">Male</option>
+          <option value="Female" data-i="gender_female">Female</option>
+          <option value="Other" data-i="gender_other">Other</option>
+        </select>
+      </div>
+      <div class="form-group full"><label data-i="lbl_address">Address</label><textarea id="address" data-i-ph="ph_address"></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="showPage('page-list')" data-i="btn_cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCustomerInfo()" data-i="btn_next_meas">Next: Add Measurements</button>
+    </div>
+  </div>
+</div>
+
+<!-- MEASUREMENTS PAGE -->
+<div class="page" id="page-measurements">
+  <div class="steps">
+    <div class="step done"><div class="step-num">&#10003;</div><div class="step-label" data-i="step_info">Customer Info</div></div>
+    <div class="step-line"></div>
+    <div class="step active"><div class="step-num">2</div><div class="step-label" data-i="step_meas">Measurements</div></div>
+  </div>
+  <div class="form-card">
+    <div class="form-title" data-i="meas_title">Measurements</div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('shirt')" data-i="tab_shirt">Shirt</div>
+      <div class="tab" onclick="switchTab('pant')" data-i="tab_pant">Pant</div>
+    </div>
+    <div class="meas-section active" id="tab-shirt">
+      <div class="meas-grid">
+        <div class="form-group"><label data-i="m_shoulder">Shoulder (inch)</label><input type="number" step="0.5" id="s_shoulder" placeholder="e.g. 17"></div>
+        <div class="form-group"><label data-i="m_chest">Chest (inch)</label><input type="number" step="0.5" id="s_chest" placeholder="e.g. 40"></div>
+        <div class="form-group"><label data-i="m_waist">Waist (inch)</label><input type="number" step="0.5" id="s_waist" placeholder="e.g. 34"></div>
+        <div class="form-group"><label data-i="m_neck">Neck (inch)</label><input type="number" step="0.5" id="s_neck" placeholder="e.g. 15"></div>
+        <div class="form-group"><label data-i="m_sleeve">Sleeve Length (inch)</label><input type="number" step="0.5" id="s_sleeve" placeholder="e.g. 25"></div>
+        <div class="form-group"><label data-i="m_length">Shirt Length (inch)</label><input type="number" step="0.5" id="s_length" placeholder="e.g. 29"></div>
+        <div class="form-group"><label data-i="m_cuff">Cuff (inch)</label><input type="number" step="0.5" id="s_cuff" placeholder="e.g. 8"></div>
+      </div>
+    </div>
+    <div class="meas-section" id="tab-pant">
+      <div class="meas-grid">
+        <div class="form-group"><label data-i="m_waist">Waist (inch)</label><input type="number" step="0.5" id="p_waist" placeholder="e.g. 32"></div>
+        <div class="form-group"><label data-i="m_hip">Hip (inch)</label><input type="number" step="0.5" id="p_hip" placeholder="e.g. 38"></div>
+        <div class="form-group"><label data-i="m_thigh">Thigh (inch)</label><input type="number" step="0.5" id="p_thigh" placeholder="e.g. 22"></div>
+        <div class="form-group"><label data-i="m_knee">Knee (inch)</label><input type="number" step="0.5" id="p_knee" placeholder="e.g. 16"></div>
+        <div class="form-group"><label data-i="m_bottom">Bottom (inch)</label><input type="number" step="0.5" id="p_bottom" placeholder="e.g. 15"></div>
+        <div class="form-group"><label data-i="m_inseam">Inseam (inch)</label><input type="number" step="0.5" id="p_inseam" placeholder="e.g. 29"></div>
+        <div class="form-group"><label data-i="m_outseam">Outseam (inch)</label><input type="number" step="0.5" id="p_outseam" placeholder="e.g. 40"></div>
+        <div class="form-group"><label data-i="m_rise">Rise (inch)</label><input type="number" step="0.5" id="p_rise" placeholder="e.g. 12"></div>
+      </div>
+    </div>
+    <div class="form-actions" style="justify-content:space-between;">
+      <button class="btn btn-secondary" onclick="saveMeasurements(true)" data-i="btn_skip">Skip &amp; Save</button>
+      <button class="btn btn-primary" onclick="saveMeasurements(false)" data-i="btn_save_meas">Save &amp; Finish</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOMER DETAIL MODAL -->
+<div class="modal-overlay" id="customerModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modalName"></div>
+        <div style="margin-top:4px;"><span class="uid-badge" id="modalUID"></span></div>
+      </div>
+      <button class="close-btn" onclick="closeModal()">&#10005;</button>
+    </div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- ADD DELIVERY MODAL -->
+<div class="modal-overlay" id="deliveryModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" data-i="add_delivery_title">Add New Delivery</div>
+      <button class="close-btn" onclick="closeDeliveryModal()">&#10005;</button>
+    </div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchDelivTab('shirt')" data-i="tab_shirt">Shirt</div>
+      <div class="tab" onclick="switchDelivTab('pant')" data-i="tab_pant">Pant</div>
+    </div>
+    <div class="meas-section active" id="dtab-shirt">
+      <div class="meas-grid">
+        <div class="form-group"><label data-i="m_shoulder">Shoulder</label><input type="number" step="0.5" id="d_s_shoulder" placeholder="inch"></div>
+        <div class="form-group"><label data-i="m_chest">Chest</label><input type="number" step="0.5" id="d_s_chest" placeholder="inch"></div>
+        <div class="form-group"><label data-i="m_waist">Waist</label><input type="number" step="0.5" id="d_s_waist" placeholder="inch"></div>
+        <div class="form-group"><label data-i="m_neck">Neck</label><input type="number" step="0.5" id="d_s_neck" placeholder="inch"></div>
+        <div class="form-group"><label data-i="m_sleeve">Sleeve Length</label><input type="number" step="0.5" id="d_s_sleeve" placeholder="inch"></div>
+        <div class="form-group"><label data-i="m_length">Shirt Length</label><input type="number" step="0.5" id="d_s_length" placeholder="inch"></div>
+        <div class="form-group"><label data-i="m_cuff">Cuff</label><input type="number" step="0.5" id="d_s_cuff" placeholder="inch"></div>
+      </div>
+    </div>
+    <div class="meas-section" id="dtab-pant">
+      <div class="meas-grid">
+        <div class="form-group"><label data-i="m_waist">Waist</label><input type="number" step="0.5" id="d_p_waist" placeholder="inch"></div>
+        <div class="form-group"><label data-i="m_hip">Hip</label><input type="number" step="0.5" id="d_p_hip" placeholder="inch"></div>
+        <div class="form-group"><label data-i="m_thigh">Thigh</label><input type="number" step="0.5" id="d_p_thigh" placeholder="inch"></div>
+        <div class="form-group"><label data-i="m_knee">Knee</label><input type="number" step="0.5" id="d_p_knee" placeholder="inch"></div>
+        <div class="form-group"><label data-i="m_bottom">Bottom</label><input type="number" step="0.5" id="d_p_bottom" placeholder="inch"></div>
+        <div class="form-group"><label data-i="m_inseam">Inseam</label><input type="number" step="0.5" id="d_p_inseam" placeholder="inch"></div>
+        <div class="form-group"><label data-i="m_outseam">Outseam</label><input type="number" step="0.5" id="d_p_outseam" placeholder="inch"></div>
+        <div class="form-group"><label data-i="m_rise">Rise</label><input type="number" step="0.5" id="d_p_rise" placeholder="inch"></div>
+      </div>
+    </div>
+    <div class="form-grid" style="margin-top:1.25rem;">
+      <div class="form-group"><label data-i="lbl_amount">Amount (&#8377;)</label><input type="number" id="d_amount" data-i-ph="ph_amount"></div>
+      <div class="form-group"><label data-i="lbl_est_date">Est. Delivery Date</label><input type="date" id="d_delivDate"></div>
+      <div class="form-group full"><label data-i="lbl_photo">Photo of Fabric</label><input type="file" id="d_photo" accept="image/*"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeDeliveryModal()" data-i="btn_cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDelivery()" data-i="btn_save_delivery">Save Delivery</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── TRANSLATIONS ──────────────────────────────────────────────────────────────
+var LANGS = {
+  en: {
+    dir: 'ltr', font: "'Segoe UI', sans-serif",
+    nav_customers: 'Customers', nav_deliveries: 'All Deliveries',
+    customers_title: 'Customers', deliveries_title: 'All Deliveries',
+    btn_add_customer: '+ Add Customer', btn_cancel: 'Cancel',
+    btn_next_meas: 'Next: Add Measurements →', btn_skip: 'Skip & Save',
+    btn_save_meas: 'Save & Finish', btn_save_delivery: 'Save Delivery',
+    btn_add_delivery: '+ Add Delivery', btn_back: '← Back',
+    step_info: 'Customer Info', step_meas: 'Measurements',
+    customer_info_title: 'Customer Information', meas_title: 'Measurements (optional)',
+    add_delivery_title: 'Add New Delivery',
+    tab_shirt: 'Shirt', tab_pant: 'Pant',
+    lbl_first_name: 'First Name *', lbl_last_name: 'Last Name *',
+    lbl_mobile: 'Mobile Number *', lbl_age: 'Age', lbl_gender: 'Gender',
+    lbl_address: 'Address', lbl_amount: 'Amount (₹)', lbl_est_date: 'Est. Delivery Date',
+    lbl_photo: 'Photo of Fabric',
+    ph_first_name: 'Enter first name', ph_last_name: 'Enter last name',
+    ph_age: 'Age', ph_address: 'Full address', ph_amount: 'e.g. 1500',
+    gender_select: 'Select', gender_male: 'Male', gender_female: 'Female', gender_other: 'Other',
+    col_name: 'Name', col_mobile: 'Mobile', col_address: 'Address', col_created: 'Created Date',
+    col_customer: 'Customer', col_amount: 'Amount', col_est_date: 'Est. Delivery Date',
+    col_ready: 'Ready', col_delivered: 'Delivered', col_actions: 'Actions',
+    search_customers_ph: 'Search by name or mobile number...',
+    search_deliveries_ph: 'Search by customer name or mobile...',
+    no_customers: 'No customers yet. Add your first customer!',
+    no_deliveries: 'No deliveries found.',
+    stat_today: "Today's Deliveries", stat_tmrw: "Tomorrow's Deliveries",
+    stat_pending: 'Pending', stat_done: 'Delivered',
+    badge_today: 'Today', badge_tmrw: 'Tomorrow',
+    badge_ready: 'Ready', badge_not_ready: 'Not Ready',
+    badge_delivered: 'Delivered', badge_pending: 'Pending',
+    btn_mark_ready: 'Mark Ready', btn_mark_delivered: 'Mark Delivered',
+    btn_print: '🖨 Print Invoice',
+    lbl_mobile_info: 'Mobile', lbl_age_gender: 'Age / Gender',
+    lbl_address_info: 'Address', lbl_joined: 'Joined',
+    section_shirt: 'Shirt Measurements', section_pant: 'Pant Measurements',
+    section_deliveries: 'Deliveries', no_shirt_meas: 'No shirt measurements',
+    no_pant_meas: 'No pant measurements', no_delivery_yet: 'No deliveries yet',
+    delivery_label: 'Delivery', est_delivery: 'Est. Delivery',
+    m_shoulder: 'Shoulder', m_chest: 'Chest', m_waist: 'Waist', m_neck: 'Neck',
+    m_sleeve: 'Sleeve Length', m_length: 'Shirt Length', m_cuff: 'Cuff',
+    m_hip: 'Hip', m_thigh: 'Thigh', m_knee: 'Knee', m_bottom: 'Bottom',
+    m_inseam: 'Inseam', m_outseam: 'Outseam', m_rise: 'Rise',
+    inv_title: 'INVOICE', inv_bill_to: 'Bill To', inv_order_info: 'Order Info',
+    inv_order_id: 'Order ID', inv_est_date: 'Est. Delivery', inv_status: 'Status',
+    inv_shirt: 'Shirt Measurements', inv_pant: 'Pant Measurements',
+    inv_meas: 'Measurement', inv_size: 'Size',
+    inv_total: 'Total Amount', inv_footer: 'Thank you for choosing Classic Tailor! 🙏',
+    inv_status_delivered: 'Delivered', inv_status_ready: 'Ready for Pickup', inv_status_progress: 'In Progress',
+    alert_required: 'Please fill First Name, Last Name and Mobile Number.'
+  },
+  ar: {
+    dir: 'rtl', font: "'Segoe UI', 'Arial', sans-serif",
+    nav_customers: 'العملاء', nav_deliveries: 'جميع الطلبات',
+    customers_title: 'العملاء', deliveries_title: 'جميع الطلبات',
+    btn_add_customer: '+ إضافة عميل', btn_cancel: 'إلغاء',
+    btn_next_meas: 'التالي: إضافة مقاسات →', btn_skip: 'تخطي وحفظ',
+    btn_save_meas: 'حفظ وإنهاء', btn_save_delivery: 'حفظ الطلب',
+    btn_add_delivery: '+ إضافة طلب', btn_back: '→ رجوع',
+    step_info: 'معلومات العميل', step_meas: 'المقاسات',
+    customer_info_title: 'معلومات العميل', meas_title: 'المقاسات (اختياري)',
+    add_delivery_title: 'إضافة طلب جديد',
+    tab_shirt: 'قميص', tab_pant: 'بنطال',
+    lbl_first_name: 'الاسم الأول *', lbl_last_name: 'اسم العائلة *',
+    lbl_mobile: 'رقم الجوال *', lbl_age: 'العمر', lbl_gender: 'الجنس',
+    lbl_address: 'العنوان', lbl_amount: 'المبلغ (ريال)', lbl_est_date: 'تاريخ التسليم المتوقع',
+    lbl_photo: 'صورة القماش',
+    ph_first_name: 'أدخل الاسم الأول', ph_last_name: 'أدخل اسم العائلة',
+    ph_age: 'العمر', ph_address: 'العنوان الكامل', ph_amount: 'مثال: 150',
+    gender_select: 'اختر', gender_male: 'ذكر', gender_female: 'أنثى', gender_other: 'أخرى',
+    col_name: 'الاسم', col_mobile: 'الجوال', col_address: 'العنوان', col_created: 'تاريخ الإضافة',
+    col_customer: 'العميل', col_amount: 'المبلغ', col_est_date: 'تاريخ التسليم',
+    col_ready: 'جاهز', col_delivered: 'تم التسليم', col_actions: 'الإجراءات',
+    search_customers_ph: 'بحث بالاسم أو رقم الجوال...',
+    search_deliveries_ph: 'بحث باسم العميل أو الجوال...',
+    no_customers: 'لا يوجد عملاء. أضف أول عميل!',
+    no_deliveries: 'لا توجد طلبات.',
+    stat_today: 'تسليمات اليوم', stat_tmrw: 'تسليمات الغد',
+    stat_pending: 'قيد الانتظار', stat_done: 'تم التسليم',
+    badge_today: 'اليوم', badge_tmrw: 'غداً',
+    badge_ready: 'جاهز', badge_not_ready: 'غير جاهز',
+    badge_delivered: 'تم التسليم', badge_pending: 'قيد الانتظار',
+    btn_mark_ready: 'تحديد جاهز', btn_mark_delivered: 'تحديد مُسلَّم',
+    btn_print: '🖨 طباعة الفاتورة',
+    lbl_mobile_info: 'الجوال', lbl_age_gender: 'العمر / الجنس',
+    lbl_address_info: 'العنوان', lbl_joined: 'تاريخ التسجيل',
+    section_shirt: 'مقاسات القميص', section_pant: 'مقاسات البنطال',
+    section_deliveries: 'الطلبات', no_shirt_meas: 'لا توجد مقاسات قميص',
+    no_pant_meas: 'لا توجد مقاسات بنطال', no_delivery_yet: 'لا توجد طلبات بعد',
+    delivery_label: 'طلب', est_delivery: 'تاريخ التسليم المتوقع',
+    m_shoulder: 'الكتف', m_chest: 'الصدر', m_waist: 'الخصر', m_neck: 'الرقبة',
+    m_sleeve: 'طول الكم', m_length: 'طول القميص', m_cuff: 'الكفة',
+    m_hip: 'الورك', m_thigh: 'الفخذ', m_knee: 'الركبة', m_bottom: 'الأسفل',
+    m_inseam: 'الداخلي', m_outseam: 'الخارجي', m_rise: 'الارتفاع',
+    inv_title: 'فاتورة', inv_bill_to: 'فاتورة إلى', inv_order_info: 'معلومات الطلب',
+    inv_order_id: 'رقم الطلب', inv_est_date: 'تاريخ التسليم', inv_status: 'الحالة',
+    inv_shirt: 'مقاسات القميص', inv_pant: 'مقاسات البنطال',
+    inv_meas: 'القياس', inv_size: 'المقاس',
+    inv_total: 'المبلغ الإجمالي', inv_footer: 'شكراً لاختيارك Classic Tailor 🙏',
+    inv_status_delivered: 'تم التسليم', inv_status_ready: 'جاهز للاستلام', inv_status_progress: 'قيد التنفيذ',
+    alert_required: 'يرجى إدخال الاسم الأول واسم العائلة ورقم الجوال.'
+  },
+  hi: {
+    dir: 'ltr', font: "'Segoe UI', sans-serif",
+    nav_customers: 'ग्राहक', nav_deliveries: 'सभी डिलीवरी',
+    customers_title: 'ग्राहक', deliveries_title: 'सभी डिलीवरी',
+    btn_add_customer: '+ ग्राहक जोड़ें', btn_cancel: 'रद्द करें',
+    btn_next_meas: 'अगला: माप जोड़ें →', btn_skip: 'छोड़ें और सहेजें',
+    btn_save_meas: 'सहेजें और समाप्त करें', btn_save_delivery: 'डिलीवरी सहेजें',
+    btn_add_delivery: '+ डिलीवरी जोड़ें', btn_back: '← वापस',
+    step_info: 'ग्राहक जानकारी', step_meas: 'माप',
+    customer_info_title: 'ग्राहक जानकारी', meas_title: 'माप (वैकल्पिक)',
+    add_delivery_title: 'नई डिलीवरी जोड़ें',
+    tab_shirt: 'कमीज', tab_pant: 'पैंट',
+    lbl_first_name: 'पहला नाम *', lbl_last_name: 'अंतिम नाम *',
+    lbl_mobile: 'मोबाइल नंबर *', lbl_age: 'आयु', lbl_gender: 'लिंग',
+    lbl_address: 'पता', lbl_amount: 'राशि (₹)', lbl_est_date: 'अनुमानित डिलीवरी तारीख',
+    lbl_photo: 'कपड़े की फोटो',
+    ph_first_name: 'पहला नाम दर्ज करें', ph_last_name: 'अंतिम नाम दर्ज करें',
+    ph_age: 'आयु', ph_address: 'पूरा पता', ph_amount: 'जैसे 1500',
+    gender_select: 'चुनें', gender_male: 'पुरुष', gender_female: 'महिला', gender_other: 'अन्य',
+    col_name: 'नाम', col_mobile: 'मोबाइल', col_address: 'पता', col_created: 'जोड़ने की तारीख',
+    col_customer: 'ग्राहक', col_amount: 'राशि', col_est_date: 'डिलीवरी तारीख',
+    col_ready: 'तैयार', col_delivered: 'डिलीवर हुआ', col_actions: 'कार्रवाई',
+    search_customers_ph: 'नाम या मोबाइल से खोजें...',
+    search_deliveries_ph: 'ग्राहक नाम या मोबाइल से खोजें...',
+    no_customers: 'कोई ग्राहक नहीं। पहला ग्राहक जोड़ें!',
+    no_deliveries: 'कोई डिलीवरी नहीं मिली।',
+    stat_today: 'आज की डिलीवरी', stat_tmrw: 'कल की डिलीवरी',
+    stat_pending: 'बाकी', stat_done: 'डिलीवर हुई',
+    badge_today: 'आज', badge_tmrw: 'कल',
+    badge_ready: 'तैयार', badge_not_ready: 'तैयार नहीं',
+    badge_delivered: 'डिलीवर हुआ', badge_pending: 'बाकी',
+    btn_mark_ready: 'तैयार चिह्नित करें', btn_mark_delivered: 'डिलीवर चिह्नित करें',
+    btn_print: '🖨 इनवॉइस प्रिंट करें',
+    lbl_mobile_info: 'मोबाइल', lbl_age_gender: 'आयु / लिंग',
+    lbl_address_info: 'पता', lbl_joined: 'जुड़ने की तारीख',
+    section_shirt: 'कमीज माप', section_pant: 'पैंट माप',
+    section_deliveries: 'डिलीवरी', no_shirt_meas: 'कमीज माप नहीं',
+    no_pant_meas: 'पैंट माप नहीं', no_delivery_yet: 'अभी कोई डिलीवरी नहीं',
+    delivery_label: 'डिलीवरी', est_delivery: 'अनुमानित डिलीवरी',
+    m_shoulder: 'कंधा', m_chest: 'छाती', m_waist: 'कमर', m_neck: 'गर्दन',
+    m_sleeve: 'आस्तीन लंबाई', m_length: 'कमीज लंबाई', m_cuff: 'कफ',
+    m_hip: 'हिप', m_thigh: 'जांघ', m_knee: 'घुटना', m_bottom: 'पायंचा',
+    m_inseam: 'इनसीम', m_outseam: 'आउटसीम', m_rise: 'राइज',
+    inv_title: 'इनवॉइस', inv_bill_to: 'बिल टू', inv_order_info: 'ऑर्डर जानकारी',
+    inv_order_id: 'ऑर्डर आईडी', inv_est_date: 'डिलीवरी तारीख', inv_status: 'स्थिति',
+    inv_shirt: 'कमीज माप', inv_pant: 'पैंट माप',
+    inv_meas: 'माप', inv_size: 'साइज',
+    inv_total: 'कुल राशि', inv_footer: 'Classic Tailor चुनने के लिए धन्यवाद! 🙏',
+    inv_status_delivered: 'डिलीवर हुआ', inv_status_ready: 'लेने के लिए तैयार', inv_status_progress: 'प्रगति में',
+    alert_required: 'कृपया पहला नाम, अंतिम नाम और मोबाइल नंबर भरें।'
+  },
+  ur: {
+    dir: 'rtl', font: "'Segoe UI', 'Arial', sans-serif",
+    nav_customers: 'گاہک', nav_deliveries: 'تمام ڈیلیوری',
+    customers_title: 'گاہک', deliveries_title: 'تمام ڈیلیوری',
+    btn_add_customer: '+ گاہک شامل کریں', btn_cancel: 'منسوخ',
+    btn_next_meas: 'اگلا: پیمائش شامل کریں →', btn_skip: 'چھوڑیں اور محفوظ کریں',
+    btn_save_meas: 'محفوظ کریں اور ختم کریں', btn_save_delivery: 'ڈیلیوری محفوظ کریں',
+    btn_add_delivery: '+ ڈیلیوری شامل کریں', btn_back: '← واپس',
+    step_info: 'گاہک کی معلومات', step_meas: 'پیمائش',
+    customer_info_title: 'گاہک کی معلومات', meas_title: 'پیمائش (اختیاری)',
+    add_delivery_title: 'نئی ڈیلیوری شامل کریں',
+    tab_shirt: 'قمیض', tab_pant: 'پتلون',
+    lbl_first_name: 'پہلا نام *', lbl_last_name: 'آخری نام *',
+    lbl_mobile: 'موبائل نمبر *', lbl_age: 'عمر', lbl_gender: 'جنس',
+    lbl_address: 'پتہ', lbl_amount: 'رقم (روپے)', lbl_est_date: 'متوقع ڈیلیوری تاریخ',
+    lbl_photo: 'کپڑے کی تصویر',
+    ph_first_name: 'پہلا نام درج کریں', ph_last_name: 'آخری نام درج کریں',
+    ph_age: 'عمر', ph_address: 'مکمل پتہ', ph_amount: 'مثلاً 1500',
+    gender_select: 'منتخب کریں', gender_male: 'مرد', gender_female: 'عورت', gender_other: 'دیگر',
+    col_name: 'نام', col_mobile: 'موبائل', col_address: 'پتہ', col_created: 'تاریخ اضافہ',
+    col_customer: 'گاہک', col_amount: 'رقم', col_est_date: 'ڈیلیوری تاریخ',
+    col_ready: 'تیار', col_delivered: 'ڈیلیور ہوا', col_actions: 'اقدامات',
+    search_customers_ph: 'نام یا موبائل سے تلاش کریں...',
+    search_deliveries_ph: 'گاہک کے نام یا موبائل سے تلاش کریں...',
+    no_customers: 'کوئی گاہک نہیں۔ پہلا گاہک شامل کریں!',
+    no_deliveries: 'کوئی ڈیلیوری نہیں ملی۔',
+    stat_today: 'آج کی ڈیلیوری', stat_tmrw: 'کل کی ڈیلیوری',
+    stat_pending: 'زیر التواء', stat_done: 'ڈیلیور ہوئی',
+    badge_today: 'آج', badge_tmrw: 'کل',
+    badge_ready: 'تیار', badge_not_ready: 'تیار نہیں',
+    badge_delivered: 'ڈیلیور ہوا', badge_pending: 'زیر التواء',
+    btn_mark_ready: 'تیار نشان کریں', btn_mark_delivered: 'ڈیلیور نشان کریں',
+    btn_print: '🖨 انوائس پرنٹ کریں',
+    lbl_mobile_info: 'موبائل', lbl_age_gender: 'عمر / جنس',
+    lbl_address_info: 'پتہ', lbl_joined: 'شمولیت کی تاریخ',
+    section_shirt: 'قمیض کی پیمائش', section_pant: 'پتلون کی پیمائش',
+    section_deliveries: 'ڈیلیوری', no_shirt_meas: 'قمیض کی پیمائش نہیں',
+    no_pant_meas: 'پتلون کی پیمائش نہیں', no_delivery_yet: 'ابھی کوئی ڈیلیوری نہیں',
+    delivery_label: 'ڈیلیوری', est_delivery: 'متوقع ڈیلیوری',
+    m_shoulder: 'کندھا', m_chest: 'سینہ', m_waist: 'کمر', m_neck: 'گردن',
+    m_sleeve: 'آستین کی لمبائی', m_length: 'قمیض کی لمبائی', m_cuff: 'کف',
+    m_hip: 'کولہا', m_thigh: 'ران', m_knee: 'گھٹنا', m_bottom: 'پائنچہ',
+    m_inseam: 'اندرونی سیون', m_outseam: 'بیرونی سیون', m_rise: 'رائز',
+    inv_title: 'انوائس', inv_bill_to: 'بل بنام', inv_order_info: 'آرڈر کی معلومات',
+    inv_order_id: 'آرڈر آئی ڈی', inv_est_date: 'ڈیلیوری تاریخ', inv_status: 'حالت',
+    inv_shirt: 'قمیض کی پیمائش', inv_pant: 'پتلون کی پیمائش',
+    inv_meas: 'پیمائش', inv_size: 'سائز',
+    inv_total: 'کل رقم', inv_footer: 'Classic Tailor کا انتخاب کرنے کا شکریہ! 🙏',
+    inv_status_delivered: 'ڈیلیور ہوا', inv_status_ready: 'وصول کے لیے تیار', inv_status_progress: 'جاری ہے',
+    alert_required: 'براہ کرم پہلا نام، آخری نام اور موبائل نمبر درج کریں۔'
+  }
+};
+
+var currentLang = 'en';
+function t(key) { return (LANGS[currentLang] && LANGS[currentLang][key]) || (LANGS['en'][key]) || key; }
+
+function changeLang(lang) {
+  currentLang = lang;
+  var L = LANGS[lang];
+  document.documentElement.setAttribute('dir', L.dir);
+  document.documentElement.setAttribute('lang', lang);
+  document.body.style.fontFamily = L.font;
+  // update all data-i elements
+  document.querySelectorAll('[data-i]').forEach(function(el){
+    var key = el.getAttribute('data-i');
+    if (el.tagName === 'OPTION') el.textContent = t(key);
+    else el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-i-ph]').forEach(function(el){
+    el.placeholder = t(el.getAttribute('data-i-ph'));
+  });
+  // re-render current page
+  var activePage = document.querySelector('.page.active');
+  if (activePage) {
+    if (activePage.id === 'page-list') renderTable();
+    else if (activePage.id === 'page-deliveries') renderDeliveriesPage();
+  }
+}
+
+// ─── DATA ──────────────────────────────────────────────────────────────────────
+var currentCustomerId = null;
+var tempCustomer = null;
+function uid() { return 'CT-' + Date.now().toString(36).toUpperCase(); }
+function getCustomers() { return JSON.parse(localStorage.getItem('ct_customers') || '[]'); }
+function saveCustomers(list) { localStorage.setItem('ct_customers', JSON.stringify(list)); }
+function toDateStr(d) { var x = new Date(d); x.setMinutes(x.getMinutes()-x.getTimezoneOffset()); return x.toISOString().split('T')[0]; }
+function todayStr() { return toDateStr(new Date()); }
+function tmrwStr() { var d=new Date(); d.setDate(d.getDate()+1); return toDateStr(d); }
+
+// ─── NAVIGATION ────────────────────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(function(l){ l.classList.remove('active'); });
+  var ha = document.getElementById('headerActions');
+  if (id === 'page-list') {
+    document.getElementById('nav-customers').classList.add('active');
+    ha.innerHTML = '<button class="btn btn-primary" onclick="showPage(\'page-add-customer\')">'+ t('btn_add_customer') +'</button>';
+    renderTable();
+  } else if (id === 'page-deliveries') {
+    document.getElementById('nav-deliveries').classList.add('active');
+    ha.innerHTML = '';
+    renderDeliveriesPage();
+  } else {
+    ha.innerHTML = '<button class="btn btn-secondary" onclick="showPage(\'page-list\')">'+ t('btn_back') +'</button>';
+  }
+}
+
+// ─── CUSTOMER TABLE ────────────────────────────────────────────────────────────
+function renderTable() {
+  var q = (document.getElementById('customerSearch').value || '').toLowerCase();
+  var customers = getCustomers();
+  if (q) customers = customers.filter(function(c){
+    return (c.firstName+' '+c.lastName).toLowerCase().indexOf(q) >= 0 || (c.mobile||'').indexOf(q) >= 0;
+  });
+  var tbody = document.getElementById('customerTableBody');
+  var empty = document.getElementById('emptyState');
+  if (!customers.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = customers.map(function(c){
+    return '<tr class="clickable" onclick="openCustomer(\''+c.id+'\')">'+
+      '<td><strong>'+c.firstName+' '+c.lastName+'</strong></td>'+
+      '<td>'+c.mobile+'</td>'+
+      '<td>'+(c.address||'&mdash;')+'</td>'+
+      '<td>'+new Date(c.createdAt).toLocaleDateString()+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
+// ─── DELIVERIES PAGE ───────────────────────────────────────────────────────────
+function renderDeliveriesPage() {
+  var q = (document.getElementById('deliverySearch').value || '').toLowerCase();
+  var customers = getCustomers();
+  var td = todayStr(), tm = tmrwStr();
+  var all = [];
+  customers.forEach(function(c){ (c.deliveries||[]).forEach(function(d,i){ all.push({c:c,d:d,i:i}); }); });
+  var cntToday = all.filter(function(x){ return x.d.delivDate===td; }).length;
+  var cntTmrw  = all.filter(function(x){ return x.d.delivDate===tm; }).length;
+  var cntPend  = all.filter(function(x){ return !x.d.isDelivered; }).length;
+  var cntDone  = all.filter(function(x){ return x.d.isDelivered; }).length;
+  document.getElementById('deliveryStats').innerHTML =
+    stat(t('stat_today'), cntToday, 'amber') + stat(t('stat_tmrw'), cntTmrw, 'blue') +
+    stat(t('stat_pending'), cntPend, 'amber') + stat(t('stat_done'), cntDone, 'green');
+  if (q) all = all.filter(function(x){
+    return (x.c.firstName+' '+x.c.lastName).toLowerCase().indexOf(q)>=0 || (x.c.mobile||'').indexOf(q)>=0;
+  });
+  var tbody = document.getElementById('deliveriesTableBody');
+  var empty  = document.getElementById('delivEmptyState');
+  if (!all.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = all.map(function(row){
+    var c=row.c, d=row.d, i=row.i;
+    var rb = d.isReady ? badge('green', t('badge_ready')) : badge('amber', t('badge_not_ready'));
+    var db = d.isDelivered ? badge('green', t('badge_delivered')) : badge('red', t('badge_pending'));
+    var dateStr = d.delivDate ? new Date(d.delivDate+'T00:00:00').toLocaleDateString() : '&mdash;';
+    var dateBadge = d.delivDate===td ? ' '+badge('amber',t('badge_today')) : d.delivDate===tm ? ' '+badge('blue',t('badge_tmrw')) : '';
+    var acts = '';
+    if (!d.isReady) acts += '<button class="btn btn-warning btn-sm" onclick="updateDelivFromList(\''+c.id+'\','+i+',\'isReady\',true)">'+t('btn_mark_ready')+'</button> ';
+    if (d.isReady&&!d.isDelivered) acts += '<button class="btn btn-success btn-sm" onclick="updateDelivFromList(\''+c.id+'\','+i+',\'isDelivered\',true)">'+t('btn_mark_delivered')+'</button> ';
+    acts += '<button class="btn btn-print btn-sm" onclick="printInvoice(\''+c.id+'\','+i+')">'+t('btn_print')+'</button>';
+    return '<tr>'+
+      '<td style="cursor:pointer;" onclick="openCustomer(\''+c.id+'\')"><strong>'+c.firstName+' '+c.lastName+'</strong><br><span style="font-size:11px;color:#aaa;">'+c.id+'</span></td>'+
+      '<td>'+c.mobile+'</td>'+
+      '<td>'+(d.amount?'&#8377;'+Number(d.amount).toLocaleString():'&mdash;')+'</td>'+
+      '<td>'+dateStr+dateBadge+'</td>'+
+      '<td>'+rb+'</td><td>'+db+'</td>'+
+      '<td><div style="display:flex;gap:6px;flex-wrap:wrap;">'+acts+'</div></td>'+
+    '</tr>';
+  }).join('');
+}
+function stat(label, val, color) { return '<div class="stat-card"><div class="stat-label">'+label+'</div><div class="stat-value '+color+'">'+val+'</div></div>'; }
+function badge(color, text) { return '<span class="badge badge-'+color+'">'+text+'</span>'; }
+
+function updateDelivFromList(cid, idx, field, val) {
+  var customers = getCustomers();
+  var c = customers.find(function(x){ return x.id===cid; });
+  if (!c) return;
+  c.deliveries[idx][field] = val;
+  saveCustomers(customers);
+  renderDeliveriesPage();
+}
+
+// ─── ADD CUSTOMER ──────────────────────────────────────────────────────────────
+function saveCustomerInfo() {
+  var fn=document.getElementById('firstName').value.trim();
+  var ln=document.getElementById('lastName').value.trim();
+  var mob=document.getElementById('mobile').value.trim();
+  if (!fn||!ln||!mob) { alert(t('alert_required')); return; }
+  tempCustomer = {
+    id:uid(), firstName:fn, lastName:ln, mobile:mob,
+    age:document.getElementById('age').value,
+    gender:document.getElementById('gender').value,
+    address:document.getElementById('address').value.trim(),
+    createdAt:Date.now(), measurements:{}, deliveries:[]
+  };
+  showPage('page-measurements');
+}
+function switchTab(tab) {
+  document.querySelectorAll('#page-measurements .tab').forEach(function(t2,i){ t2.classList.toggle('active',(i===0&&tab==='shirt')||(i===1&&tab==='pant')); });
+  document.getElementById('tab-shirt').classList.toggle('active',tab==='shirt');
+  document.getElementById('tab-pant').classList.toggle('active',tab==='pant');
+}
+function getMeasFields(prefix, ids) {
+  var obj={};
+  ids.forEach(function(id){ var v=document.getElementById(prefix+id).value; if(v) obj[id]=v; });
+  return obj;
+}
+function saveMeasurements(skip) {
+  if (!skip) {
+    tempCustomer.measurements.shirt=getMeasFields('s_',['shoulder','chest','waist','neck','sleeve','length','cuff']);
+    tempCustomer.measurements.pant=getMeasFields('p_',['waist','hip','thigh','knee','bottom','inseam','outseam','rise']);
+  }
+  var customers=getCustomers(); customers.unshift(tempCustomer); saveCustomers(customers);
+  tempCustomer=null;
+  ['firstName','lastName','mobile','age','address'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('gender').value='';
+  showPage('page-list');
+}
+
+// ─── CUSTOMER MODAL ────────────────────────────────────────────────────────────
+function openCustomer(id) {
+  currentCustomerId=id;
+  var c=getCustomers().find(function(x){ return x.id===id; });
+  if (!c) return;
+  document.getElementById('modalName').textContent=c.firstName+' '+c.lastName;
+  document.getElementById('modalUID').textContent=c.id;
+  renderModalContent(c);
+  document.getElementById('customerModal').classList.add('open');
+}
+function renderModalContent(c) {
+  var m=c.measurements||{}, shirt=m.shirt||{}, pant=m.pant||{};
+  var shirtHtml=Object.keys(shirt).length?Object.entries(shirt).map(function(e){ return '<span style="background:#f0f0f0;padding:4px 10px;border-radius:6px;font-size:13px;margin:3px;">'+t('m_'+e[0])+': <strong>'+e[1]+'"</strong></span>'; }).join(''):'<span style="color:#aaa;font-size:13px;">'+t('no_shirt_meas')+'</span>';
+  var pantHtml=Object.keys(pant).length?Object.entries(pant).map(function(e){ return '<span style="background:#f0f0f0;padding:4px 10px;border-radius:6px;font-size:13px;margin:3px;">'+t('m_'+e[0])+': <strong>'+e[1]+'"</strong></span>'; }).join(''):'<span style="color:#aaa;font-size:13px;">'+t('no_pant_meas')+'</span>';
+  var delivHtml='';
+  if (!c.deliveries||!c.deliveries.length) {
+    delivHtml='<div style="text-align:center;padding:2rem;background:#f9f9f7;border-radius:10px;border:1px dashed #ccc;margin-top:1rem;"><p style="color:#888;font-size:14px;margin-bottom:1rem;">'+t('no_delivery_yet')+'</p><button class="btn btn-primary btn-sm" onclick="openDeliveryModal()">'+t('btn_add_delivery')+'</button></div>';
+  } else {
+    delivHtml='<div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;margin-bottom:0.5rem;"><div class="section-label" style="margin:0;">'+t('section_deliveries')+'</div><button class="btn btn-primary btn-sm" onclick="openDeliveryModal()">'+t('btn_add_delivery')+'</button></div>';
+    delivHtml+=c.deliveries.map(function(d,i){
+      var rb=d.isReady?badge('green',t('badge_ready')):badge('amber',t('badge_not_ready'));
+      var db=d.isDelivered?badge('green',t('badge_delivered')):badge('red',t('badge_pending'));
+      var photo=d.photo?'<img class="photo-preview" src="'+d.photo+'" alt="Fabric">':'';
+      var ds=d.shirt||{},dp=d.pant||{};
+      var dsH=Object.keys(ds).length?Object.entries(ds).map(function(e){ return '<span style="background:#e8f0fe;padding:3px 8px;border-radius:5px;font-size:12px;margin:2px;">'+t('m_'+e[0])+':'+e[1]+'"</span>'; }).join(''):'&mdash;';
+      var dpH=Object.keys(dp).length?Object.entries(dp).map(function(e){ return '<span style="background:#fce8e6;padding:3px 8px;border-radius:5px;font-size:12px;margin:2px;">'+t('m_'+e[0])+':'+e[1]+'"</span>'; }).join(''):'&mdash;';
+      var acts='';
+      if (!d.isReady) acts+='<button class="btn btn-warning btn-sm" onclick="updateDelivery(\''+c.id+'\','+i+',\'isReady\',true)">'+t('btn_mark_ready')+'</button>';
+      if (d.isReady&&!d.isDelivered) acts+='<button class="btn btn-success btn-sm" onclick="updateDelivery(\''+c.id+'\','+i+',\'isDelivered\',true)">'+t('btn_mark_delivered')+'</button>';
+      acts+='<button class="btn btn-print btn-sm" onclick="printInvoice(\''+c.id+'\','+i+')">'+t('btn_print')+'</button>';
+      return '<div class="delivery-card">'+
+        '<div class="delivery-header"><div class="delivery-title">'+t('delivery_label')+' #'+(i+1)+' '+(d.amount?'<span style="color:#2e7d32;font-size:14px;">&#8377;'+Number(d.amount).toLocaleString()+'</span>':'')+'</div><div style="display:flex;gap:6px;">'+rb+db+'</div></div>'+
+        photo+
+        '<div style="margin:8px 0 4px;font-size:12px;color:#888;font-weight:600;">'+t('tab_shirt').toUpperCase()+'</div><div style="display:flex;flex-wrap:wrap;gap:4px;">'+dsH+'</div>'+
+        '<div style="margin:8px 0 4px;font-size:12px;color:#888;font-weight:600;">'+t('tab_pant').toUpperCase()+'</div><div style="display:flex;flex-wrap:wrap;gap:4px;">'+dpH+'</div>'+
+        '<div style="margin-top:10px;font-size:13px;color:#666;">'+t('est_delivery')+': <strong>'+(d.delivDate?new Date(d.delivDate+'T00:00:00').toLocaleDateString():'&mdash;')+'</strong></div>'+
+        '<div class="delivery-actions">'+acts+'</div></div>';
+    }).join('');
+  }
+  document.getElementById('modalContent').innerHTML=
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;">'+
+    '<div class="detail-row"><span class="detail-label">'+t('lbl_mobile_info')+'</span><span>'+c.mobile+'</span></div>'+
+    '<div class="detail-row"><span class="detail-label">'+t('lbl_age_gender')+'</span><span>'+(c.age||'&mdash;')+' / '+(c.gender||'&mdash;')+'</span></div>'+
+    '<div class="detail-row" style="grid-column:1/-1;"><span class="detail-label">'+t('lbl_address_info')+'</span><span>'+(c.address||'&mdash;')+'</span></div>'+
+    '<div class="detail-row"><span class="detail-label">'+t('lbl_joined')+'</span><span>'+new Date(c.createdAt).toLocaleDateString()+'</span></div></div>'+
+    '<div class="section-label">'+t('section_shirt')+'</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem;">'+shirtHtml+'</div>'+
+    '<div class="section-label">'+t('section_pant')+'</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+pantHtml+'</div>'+
+    delivHtml;
+}
+function updateDelivery(cid,idx,field,val) {
+  var customers=getCustomers(); var c=customers.find(function(x){ return x.id===cid; }); if (!c) return;
+  c.deliveries[idx][field]=val; saveCustomers(customers); renderModalContent(c);
+}
+function closeModal() { document.getElementById('customerModal').classList.remove('open'); }
+
+// ─── DELIVERY MODAL ────────────────────────────────────────────────────────────
+function switchDelivTab(tab) {
+  document.querySelectorAll('#deliveryModal .tab').forEach(function(t2,i){ t2.classList.toggle('active',(i===0&&tab==='shirt')||(i===1&&tab==='pant')); });
+  document.getElementById('dtab-shirt').classList.toggle('active',tab==='shirt');
+  document.getElementById('dtab-pant').classList.toggle('active',tab==='pant');
+}
+function openDeliveryModal() { document.getElementById('deliveryModal').classList.add('open'); }
+function closeDeliveryModal() { document.getElementById('deliveryModal').classList.remove('open'); }
+function saveDelivery() {
+  var customers=getCustomers(); var c=customers.find(function(x){ return x.id===currentCustomerId; }); if (!c) return;
+  var photoFile=document.getElementById('d_photo').files[0];
+  function saveIt(photoData) {
+    var delivery={
+      shirt:getMeasFields('d_s_',['shoulder','chest','waist','neck','sleeve','length','cuff']),
+      pant:getMeasFields('d_p_',['waist','hip','thigh','knee','bottom','inseam','outseam','rise']),
+      amount:document.getElementById('d_amount').value,
+      delivDate:document.getElementById('d_delivDate').value,
+      photo:photoData||null, isReady:false, isDelivered:false, addedAt:Date.now()
+    };
+    c.deliveries=c.deliveries||[]; c.deliveries.push(delivery); saveCustomers(customers);
+    closeDeliveryModal(); renderModalContent(c);
+    document.getElementById('d_amount').value='';
+    document.getElementById('d_delivDate').value='';
+    document.getElementById('d_photo').value='';
+  }
+  if (photoFile) { var r=new FileReader(); r.onload=function(e){ saveIt(e.target.result); }; r.readAsDataURL(photoFile); }
+  else saveIt(null);
+}
+
+// ─── PRINT INVOICE (popup window — works everywhere) ──────────────────────────
+function printInvoice(cid, idx) {
+  var customers=getCustomers();
+  var c=customers.find(function(x){ return x.id===cid; });
+  if (!c) return;
+  var d=c.deliveries[idx];
+  var ds=d.shirt||{}, dp=d.pant||{};
+  var L = LANGS[currentLang];
+  var isRtl = L.dir === 'rtl';
+
+  function measRows(obj) {
+    return Object.entries(obj).map(function(e){
+      return '<tr><td style="padding:7px 12px;border-bottom:1px solid #f0f0f0;">'+t('m_'+e[0])+'</td><td style="padding:7px 12px;border-bottom:1px solid #f0f0f0;font-weight:600;">'+e[1]+'"</td></tr>';
+    }).join('');
+  }
+  var shirtRows = measRows(ds);
+  var pantRows  = measRows(dp);
+  var statusText = d.isDelivered ? t('inv_status_delivered') : d.isReady ? t('inv_status_ready') : t('inv_status_progress');
+  var dateStr = d.delivDate ? new Date(d.delivDate+'T00:00:00').toLocaleDateString() : '&mdash;';
+  var amtStr = d.amount ? '&#8377;'+Number(d.amount).toLocaleString() : '0';
+
+  var html = '<!DOCTYPE html><html dir="'+L.dir+'" lang="'+currentLang+'">'+
+  '<head><meta charset="UTF-8"><title>'+t('inv_title')+'</title>'+
+  '<style>'+
+    '*{box-sizing:border-box;margin:0;padding:0;}'+
+    'body{font-family:'+L.font+';color:#1a1a1a;padding:2.5rem;max-width:680px;margin:0 auto;direction:'+L.dir+';}'+
+    'h4{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#aaa;margin-bottom:10px;font-weight:600;}'+
+    '.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2rem;padding-bottom:1rem;border-bottom:2px solid #1a1a1a;}'+
+    '.shop{font-size:26px;font-weight:700;} .shop small{display:block;font-size:13px;font-weight:400;color:#888;margin-top:4px;}'+
+    '.meta{text-align:'+(isRtl?'left':'right')+';font-size:13px;color:#555;line-height:1.9;}'+
+    '.meta strong{font-size:16px;color:#1a1a1a;}'+
+    '.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}'+
+    '.section{margin:1.25rem 0;}'+
+    'table{width:100%;border-collapse:collapse;font-size:13px;}'+
+    'th{background:#f5f5f0;padding:8px 12px;text-align:'+(isRtl?'right':'left')+';font-weight:600;}'+
+    '.total{text-align:'+(isRtl?'left':'right')+';font-size:22px;font-weight:700;color:#2e7d32;margin-top:1.5rem;padding-top:1rem;border-top:2px solid #e0e0e0;}'+
+    '.footer{text-align:center;margin-top:2rem;font-size:13px;color:#aaa;border-top:1px solid #e0e0e0;padding-top:1rem;}'+
+    '@media print{body{padding:1.5rem;}}'+
+  '</style></head><body>'+
+  '<div class="top">'+
+    '<div><div class="shop">&#9986; Classic Tailor<small>'+t('inv_footer').split('!')[0].trim()+'</small></div></div>'+
+    '<div class="meta"><strong>'+t('inv_title')+'</strong><br>'+t('inv_order_id')+': '+c.id+'-D'+(idx+1)+'<br>'+new Date().toLocaleDateString()+'</div>'+
+  '</div>'+
+  '<div class="grid2">'+
+    '<div class="section"><h4>'+t('inv_bill_to')+'</h4>'+
+      '<div style="font-size:16px;font-weight:600;">'+c.firstName+' '+c.lastName+'</div>'+
+      '<div style="color:#555;font-size:13px;margin-top:6px;">&#128222; '+c.mobile+'</div>'+
+      (c.address?'<div style="color:#555;font-size:13px;margin-top:2px;">'+c.address+'</div>':'')+
+    '</div>'+
+    '<div class="section"><h4>'+t('inv_order_info')+'</h4>'+
+      '<div style="font-size:13px;margin-bottom:4px;">'+t('inv_order_id')+': <strong>'+c.id+'-D'+(idx+1)+'</strong></div>'+
+      '<div style="font-size:13px;margin-bottom:4px;">'+t('inv_est_date')+': <strong>'+dateStr+'</strong></div>'+
+      '<div style="font-size:13px;">'+t('inv_status')+': <strong>'+statusText+'</strong></div>'+
+    '</div>'+
+  '</div>'+
+  (shirtRows?'<div class="section"><h4>'+t('inv_shirt')+'</h4><table><thead><tr><th>'+t('inv_meas')+'</th><th>'+t('inv_size')+'</th></tr></thead><tbody>'+shirtRows+'</tbody></table></div>':'')+
+  (pantRows?'<div class="section"><h4>'+t('inv_pant')+'</h4><table><thead><tr><th>'+t('inv_meas')+'</th><th>'+t('inv_size')+'</th></tr></thead><tbody>'+pantRows+'</tbody></table></div>':'')+
+  '<div class="total">'+t('inv_total')+': '+amtStr+'</div>'+
+  '<div class="footer">'+t('inv_footer')+'</div>'+
+  '<script>window.onload=function(){ window.print(); window.onafterprint=function(){ window.close(); }; };<\/script>'+
+  '</body></html>';
+
+  var popup = window.open('', '_blank', 'width=750,height=900,scrollbars=yes');
+  if (popup) {
+    popup.document.write(html);
+    popup.document.close();
+  } else {
+    alert('Please allow popups for this page to print the invoice.');
+  }
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────────
+showPage('page-list');
+</script>
+</body>
+</html>
